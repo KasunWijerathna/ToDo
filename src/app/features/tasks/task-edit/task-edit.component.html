@@ -1,0 +1,110 @@
+<app-modal
+  [isOpen]="true"
+  [title]="task ? 'Edit Task' : 'Add Task'"
+  [showFooter]="false"
+  (closed)="close()"
+>
+  <form [formGroup]="taskForm" (ngSubmit)="onSubmit()" class="task-edit-form">
+    <!-- Title Input -->
+    <div class="form-group">
+      <label for="task-title" class="form-label">
+        Title
+        <span class="required-mark">*</span>
+      </label>
+      <input
+        id="task-title"
+        type="text"
+        formControlName="title"
+        placeholder="Fix login bug"
+        class="form-input"
+        [class.error]="titleControl?.invalid && titleControl?.touched"
+        [attr.aria-invalid]="titleControl?.invalid && titleControl?.touched"
+        [attr.aria-describedby]="getTitleError() ? 'title-error' : null"
+      />
+      <p
+        *ngIf="getTitleError()"
+        id="title-error"
+        class="error-message"
+        role="alert"
+      >
+        {{ getTitleError() }}
+      </p>
+    </div>
+
+    <!-- Description Textarea -->
+    <div class="form-group">
+      <label for="task-description" class="form-label">
+        Description
+        <span class="required-mark">*</span>
+      </label>
+      <textarea
+        id="task-description"
+        formControlName="description"
+        placeholder="Users are unable to log in when entering correct credentials"
+        rows="4"
+        class="form-textarea"
+        [class.error]="descriptionControl?.invalid && descriptionControl?.touched"
+        [attr.aria-invalid]="descriptionControl?.invalid && descriptionControl?.touched"
+        [attr.aria-describedby]="getDescriptionError() ? 'description-error' : null"
+      ></textarea>
+      <p
+        *ngIf="getDescriptionError()"
+        id="description-error"
+        class="error-message"
+        role="alert"
+      >
+        {{ getDescriptionError() }}
+      </p>
+    </div>
+
+    <!-- Status Dropdown -->
+    <div class="form-group">
+      <label for="task-status" class="form-label">
+        Status
+        <span class="required-mark">*</span>
+      </label>
+      <div class="select-wrapper">
+        <select
+          id="task-status"
+          formControlName="status"
+          class="form-select"
+          aria-label="Task status"
+        >
+          <option *ngFor="let option of statusOptions" [value]="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Task Metadata (for edit mode) -->
+    <div *ngIf="task" class="task-metadata">
+      <p class="metadata-item">
+        <strong>Created:</strong> {{ formatDate(task.createdAt) }}
+      </p>
+      <p *ngIf="task.updatedAt && task.updatedAt !== task.createdAt" class="metadata-item">
+        <strong>Updated:</strong> {{ formatDate(task.updatedAt) }}
+      </p>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions" footer>
+      <app-button
+        type="button"
+        variant="secondary"
+        (clicked)="onCancel()"
+        [disabled]="isSubmitting()"
+      >
+        Cancel
+      </app-button>
+      <app-button
+        type="submit"
+        variant="primary"
+        [disabled]="taskForm.invalid"
+        [loading]="isSubmitting()"
+      >
+        {{ task ? 'Save' : 'Create' }}
+      </app-button>
+    </div>
+  </form>
+</app-modal>

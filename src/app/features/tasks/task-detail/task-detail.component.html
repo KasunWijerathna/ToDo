@@ -1,0 +1,78 @@
+<div class="task-detail-container" *ngIf="task() as currentTask">
+  <!-- Header with Back button -->
+  <div class="task-detail-header">
+    <button
+      app-button
+      variant="secondary"
+      (click)="goBack()"
+      class="back-button"
+      aria-label="Go back to task list"
+    >
+      <span class="back-icon">←</span> Back
+    </button>
+  </div>
+
+  <!-- Task Details Card -->
+  <div class="task-detail-card">
+    <!-- Title and Status -->
+    <div class="task-header">
+      <h1 class="task-title">{{ currentTask.title }}</h1>
+      <app-badge [variant]="getStatusBadgeVariant(currentTask.status)">
+        {{ getStatusLabel(currentTask.status) }}
+      </app-badge>
+    </div>
+
+    <!-- Description -->
+    <div class="task-section">
+      <h2 class="section-label">Description</h2>
+      <p class="task-description">{{ currentTask.description }}</p>
+    </div>
+
+    <!-- Metadata -->
+    <div class="task-metadata">
+      <div class="metadata-item">
+        <span class="metadata-label">Created on:</span>
+        <span class="metadata-value">{{ formatDate(currentTask.createdAt) }}</span>
+      </div>
+      <div class="metadata-item" *ngIf="currentTask.updatedAt">
+        <span class="metadata-label">Last updated:</span>
+        <span class="metadata-value">{{ formatDate(currentTask.updatedAt) }}</span>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="task-actions">
+      <button
+        app-button
+        variant="primary"
+        (click)="openEditModal()"
+        aria-label="Edit task"
+      >
+        Edit
+      </button>
+      <button
+        app-button
+        variant="danger"
+        (click)="deleteTask()"
+        aria-label="Delete task"
+      >
+        Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<app-task-edit
+  *ngIf="isEditModalOpen()"
+  [task]="task()"
+  (closed)="closeEditModal()"
+></app-task-edit>
+
+<!-- Loading/Not Found State -->
+<div class="not-found" *ngIf="!task()">
+  <p>Task not found</p>
+  <button app-button variant="primary" (click)="goBack()">
+    Back to Tasks
+  </button>
+</div>

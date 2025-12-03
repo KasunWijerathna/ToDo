@@ -1,0 +1,191 @@
+<div class="task-list-container">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-top">
+      <h1 class="page-title">Task List Page</h1>
+      <app-button
+        variant="primary"
+        (clicked)="openAddModal()"
+        ariaLabel="Add new task"
+      >
+        + Add Task
+      </app-button>
+    </div>
+    <div class="stats-container">
+      <div class="stat-item">
+        <span class="stat-label">Total:</span>
+        <span class="stat-value">{{ stats().total }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Pending:</span>
+        <span class="stat-value text-gray-600">{{ stats().pending }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">In Progress:</span>
+        <span class="stat-value text-yellow-600">{{ stats().inProgress }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Done:</span>
+        <span class="stat-value text-green-600">{{ stats().done }}</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Status Filter Buttons -->
+  <div class="status-filters">
+    <button
+      class="filter-button"
+      [class.active]="currentFilter() === 'all'"
+      (click)="onFilterChange('all')"
+      [attr.aria-pressed]="currentFilter() === 'all'"
+    >
+      All
+    </button>
+    <button
+      class="filter-button"
+      [class.active]="currentFilter() === 'pending'"
+      (click)="onFilterChange('pending')"
+      [attr.aria-pressed]="currentFilter() === 'pending'"
+    >
+      Pending
+    </button>
+    <button
+      class="filter-button"
+      [class.active]="currentFilter() === 'in-progress'"
+      (click)="onFilterChange('in-progress')"
+      [attr.aria-pressed]="currentFilter() === 'in-progress'"
+    >
+      In Progress
+    </button>
+    <button
+      class="filter-button"
+      [class.active]="currentFilter() === 'done'"
+      (click)="onFilterChange('done')"
+      [attr.aria-pressed]="currentFilter() === 'done'"
+    >
+      Done
+    </button>
+  </div>
+
+  <!-- Search and Filter Bar -->
+  <div class="filter-bar">
+    <div class="search-wrapper">
+      <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+      <input
+        type="search"
+        placeholder="Search"
+        class="search-input"
+        [value]="searchTerm()"
+        (input)="onSearchChange($any($event.target).value)"
+        aria-label="Search tasks"
+      />
+    </div>
+
+    <div class="sort-wrapper">
+      <label for="sort-select" class="sort-label">Sort by</label>
+      <select
+        id="sort-select"
+        class="sort-select"
+        (change)="onSortChange($event)"
+        aria-label="Sort tasks"
+      >
+        <option value="title-asc">Title ↑</option>
+        <option value="title-desc">Title ↓</option>
+        <option value="createdAt-desc" selected>Date ↓</option>
+        <option value="createdAt-asc">Date ↑</option>
+        <option value="status-asc">Status ↑</option>
+        <option value="status-desc">Status ↓</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Task Cards -->
+  <div class="tasks-grid">
+    <div
+      *ngFor="let task of tasks(); trackBy: trackByTaskId"
+      class="task-card"
+      (click)="viewTaskDetails(task)"
+      [attr.role]="'button'"
+      [attr.tabindex]="0"
+      [attr.aria-label]="'View task: ' + task.title"
+      (keydown.enter)="viewTaskDetails(task)"
+      (keydown.space)="viewTaskDetails(task); $event.preventDefault()"
+    >
+      <div class="task-card-header">
+        <h3 class="task-title">{{ task.title }}</h3>
+        <app-badge [variant]="getStatusBadgeVariant(task.status)">
+          {{ getStatusLabel(task.status) }}
+        </app-badge>
+      </div>
+
+      <p class="task-description">{{ task.description }}</p>
+
+      <div class="task-footer">
+        <span class="task-date">
+          Created on {{ formatDate(task.createdAt) }}
+        </span>
+        <div class="task-actions">
+          <app-button
+            variant="primary"
+            size="sm"
+            (clicked)="viewTaskDetails(task); $event.stopPropagation()"
+            ariaLabel="View task details"
+          >
+            Details
+          </app-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="tasks().length === 0" class="empty-state">
+      <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      </svg>
+      <h3 class="empty-title">No tasks found</h3>
+      <p class="empty-message">
+        {{ searchTerm() ? 'Try adjusting your search terms' : 'Create your first task to get started' }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="totalPages() > 1">
+    <button
+      class="pagination-button"
+      [disabled]="currentPage() === 1"
+      (click)="previousPage()"
+      aria-label="Previous page"
+    >
+      ←
+    </button>
+
+    <button
+      *ngFor="let page of getPageNumbers()"
+      class="pagination-button"
+      [class.active]="currentPage() === page"
+      (click)="goToPage(page)"
+      [attr.aria-label]="'Go to page ' + page"
+      [attr.aria-current]="currentPage() === page ? 'page' : null"
+    >
+      {{ page }}
+    </button>
+
+    <button
+      class="pagination-button"
+      [disabled]="currentPage() === totalPages()"
+      (click)="nextPage()"
+      aria-label="Next page"
+    >
+      →
+    </button>
+  </div>
+
+  <!-- Add Task Modal -->
+  <app-task-edit
+    *ngIf="isAddModalOpen()"
+    (closed)="closeAddModal()"
+  ></app-task-edit>
+</div>
